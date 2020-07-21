@@ -40,7 +40,7 @@ Vagrant.configure("2") do |config|
   k8s_hosts.each do |k8s|
     config.vm.define k8s do |kube|
       kube.vm.provider :virtualbox do |vb|
-
+        vb.memory = 1024
         # Attach first NIC to infra network
         vb.customize [
           'modifyvm', :id,

@@ -20,19 +20,47 @@
     state: started
     enabled: yes
 
-- name: Install osctl
+- name: Install talosctl
   get_url:
-    url: https://github.com/talos-systems/talos/releases/download/v0.3.0-beta.0/osctl-linux-amd64
-    dest: /usr/bin/osctl
+    url: https://github.com/talos-systems/talos/releases/download/v0.5.0/talosctl-linux-amd64 
+    dest: /usr/bin/talosctl
     mode: 0755
 
 - name: Create lighttpd talos directory
   file:
     path: /var/www/lighttpd/talos
     state: directory
+    mode: 0765
+    group: vagrant
 
 - name: Generate Talos config files
-  command: osctl config generate kubernetes-talos https://kubernetes-talos.virtual.net:6443 -o /var/www/lighttpd/talos
+  command: talosctl gen config kubernetes-talos https://kubernetes-talos.virtual.net:6443 -e 192.168.102.111 -o /var/www/lighttpd/talos
+
+- name: set correct permissions
+  file:
+    group: vagrant
+    mode: 0775
+    path: "{{ item }}"
+  with_items:
+    - /var/www/lighttpd/talos/talosconfig
+    - /var/www/lighttpd/talos/
+    - /var/www/lighttpd/
+
+- name: Create config dir talos in home
+  file:
+    state: directory
+    owner: vagrant
+    group: vagrant
+    path: /home/vagrant/.talos
+
+- name: Copy talos config to home location
+  file:
+    state: link
+    src: /var/www/lighttpd/talos/talosconfig
+    path: /home/vagrant/.talos/config
+    follow: no
+    owner: vagrant
+    group: vagrant
 
 - name: Link mac address to machine config files
   file:
